@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- User Profile & Settings ---
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['currency', 'theme', 'updatedAt'])
+      );
+
+      function isValidUser(data) {
+        return data.keys().hasAll(['userId', 'currency', 'theme', 'updatedAt']) 
+          && data.keys().size() == 4
+          && data.userId == request.auth.uid
+          && data.currency in ['GHS', 'USD', 'EUR', 'GBP', 'JPY']
+          && data.theme in ['light', 'dark']
+          && data.updatedAt == request.time;
+      }
+
+      // --- Transactions ---
+      match /transactions/{transactionId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) 
+          && isValidId(transactionId)
+          && isValidTransaction(incoming())
+          && exists(/databases/$(database)/documents/users/$(userId)/categories/$(incoming().categoryId));
+        allow update: if isOwner(userId) 
+          && isValidTransaction(incoming())
+          && incoming().createdAt == existing().createdAt
+          && incoming().userId == existing().userId
+          && (
+            incoming().diff(existing()).affectedKeys().hasOnly(['amount', 'type', 'categoryId', 'date', 'note', 'updatedAt'])
+          );
+        allow delete: if isOwner(userId);
+
+        function isValidTransaction(data) {
+          return data.keys().hasAll(['userId', 'amount', 'type', 'categoryId', 'date', 'createdAt', 'updatedAt'])
+            && (data.keys().size() == 7 || (data.keys().size() == 8 && data.hasAny(['note', 'id'])))
+            // Note: Since 'id' might be passed or not depending on client implementation, we handle it flexibly but prefer server-side ID if possible.
+            && data.userId == request.auth.uid
+            && data.amount is number && data.amount >= 0
+            && data.type in ['income', 'expense']
+            && data.categoryId is string && data.categoryId.size() <= 128
+            && data.date is string // Format checking is limited in rules
+            && data.createdAt == (resource == null ? request.time : existing().createdAt)
+            && data.updatedAt == request.time;
+        }
+      }
+
+      // --- Categories ---
+      match /categories/{categoryId} {
+        allow list, get: if isOwner(userId);
+        allow create: if isOwner(userId) 
+          && isValidId(categoryId)
+          && isValidCategory(incoming());
+        allow update: if isOwner(userId)
+          && isValidCategory(incoming())
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && (
+            incoming().diff(existing()).affectedKeys().hasOnly(['name', 'icon', 'color', 'updatedAt'])
+          );
+        allow delete: if isOwner(userId);
+
+        function isValidCategory(data) {
+          return data.keys().hasAll(['userId', 'name', 'icon', 'color', 'createdAt', 'updatedAt'])
+            && (data.keys().size() == 6 || (data.keys().size() == 7 && data.hasAny(['id'])))
+            && data.userId == request.auth.uid
+            && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+            && data.icon is string && data.icon.size() <= 100
+            && data.color is string && data.color.matches('^#[A-Fa-f0-9]{6}$')
+            && data.createdAt == (resource == null ? request.time : existing().createdAt)
+            && data.updatedAt == request.time;
+        }
+      }
+    }
+  }
+}
