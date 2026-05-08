@@ -40,7 +40,7 @@ service cloud.firestore {
         return data.keys().hasAll(['userId', 'currency', 'theme', 'updatedAt']) 
           && data.keys().size() == 4
           && data.userId == request.auth.uid
-          && data.currency in ['GHS', 'USD', 'EUR', 'GBP', 'JPY']
+          && data.currency is string && data.currency.size() == 3
           && data.theme in ['light', 'dark']
           && data.updatedAt == request.time;
       }
@@ -63,15 +63,14 @@ service cloud.firestore {
 
         function isValidTransaction(data) {
           return data.keys().hasAll(['userId', 'amount', 'type', 'categoryId', 'date', 'createdAt', 'updatedAt'])
-            && (data.keys().size() == 7 || (data.keys().size() == 8 && data.hasAny(['note', 'id'])))
-            // Note: Since 'id' might be passed or not depending on client implementation, we handle it flexibly but prefer server-side ID if possible.
+            && data.keys().size() >= 7 && data.keys().size() <= 9
             && data.userId == request.auth.uid
             && data.amount is number && data.amount >= 0
             && data.type in ['income', 'expense']
             && data.categoryId is string && data.categoryId.size() <= 128
-            && data.date is string // Format checking is limited in rules
-            && data.createdAt == (resource == null ? request.time : existing().createdAt)
-            && data.updatedAt == request.time;
+            && data.date is string
+            && data.updatedAt == request.time
+            && (resource != null ? data.createdAt == existing().createdAt : data.createdAt == request.time);
         }
       }
 
@@ -79,12 +78,11 @@ service cloud.firestore {
       match /categories/{categoryId} {
         allow list, get: if isOwner(userId);
         allow create: if isOwner(userId) 
-          && isValidId(categoryId)
+          && isValidId(categoryId) 
           && isValidCategory(incoming());
         allow update: if isOwner(userId)
           && isValidCategory(incoming())
           && incoming().userId == existing().userId
-          && incoming().createdAt == existing().createdAt
           && (
             incoming().diff(existing()).affectedKeys().hasOnly(['name', 'icon', 'color', 'updatedAt'])
           );
@@ -92,13 +90,13 @@ service cloud.firestore {
 
         function isValidCategory(data) {
           return data.keys().hasAll(['userId', 'name', 'icon', 'color', 'createdAt', 'updatedAt'])
-            && (data.keys().size() == 6 || (data.keys().size() == 7 && data.hasAny(['id'])))
+            && data.keys().size() >= 6 && data.keys().size() <= 8
             && data.userId == request.auth.uid
             && data.name is string && data.name.size() > 0 && data.name.size() <= 100
             && data.icon is string && data.icon.size() <= 100
             && data.color is string && data.color.matches('^#[A-Fa-f0-9]{6}$')
-            && data.createdAt == (resource == null ? request.time : existing().createdAt)
-            && data.updatedAt == request.time;
+            && data.updatedAt == request.time
+            && (resource != null ? data.createdAt == existing().createdAt : data.createdAt == request.time);
         }
       }
     }

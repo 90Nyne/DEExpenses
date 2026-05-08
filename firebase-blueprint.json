@@ -6,7 +6,7 @@
       "type": "object",
       "properties": {
         "userId": { "type": "string" },
-        "currency": { "type": "string", "enum": ["GHS", "USD", "EUR", "GBP", "JPY"] },
+        "currency": { "type": "string" },
         "theme": { "type": "string", "enum": ["light", "dark"] },
         "updatedAt": { "type": "string", "format": "date-time" }
       },

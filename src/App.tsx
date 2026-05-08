@@ -21,6 +21,7 @@ import {
   Check,
   Trash2,
   ChevronLeft,
+  ChevronDown,
   Tag,
   LogOut
 } from 'lucide-react';
@@ -56,6 +57,55 @@ import { DEFAULT_CATEGORIES, CURRENCIES } from './constants';
 import { cn } from './lib/utils';
 import { auth, db, signInWithGoogle } from './lib/firebase';
 import { handleFirestoreError, OperationType } from './lib/firestoreUtils';
+
+// --- Background Component ---
+
+const ArtisticBackground = () => (
+  <div className="art-bg">
+    <svg width="100%" height="100%" viewBox="0 0 400 1200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      {/* African Mask Motif 1 - Large, central focus */}
+      <g transform="translate(40, 150) rotate(-5) scale(1.2)">
+        <path d="M0 0 L100 0 L120 100 L 50 250 L -20 100 Z" stroke="black" strokeWidth="5" fill="none" />
+        <path d="M30 40 L 50 60 M70 60 L 90 40" stroke="black" strokeWidth="4" /> {/* Eyes */}
+        <path d="M40 100 L 80 100 L 60 160 Z" stroke="black" strokeWidth="3" fill="none" /> {/* Long Nose */}
+        <path d="M45 200 L 75 200" stroke="black" strokeWidth="6" /> {/* Mouth */}
+        {/* Tribal markings */}
+        <path d="M10 20 L 30 20 M90 20 L 110 20" stroke="black" strokeWidth="2" />
+        <path d="M-5 50 L -15 60 M125 50 L 135 60" stroke="black" strokeWidth="2" />
+      </g>
+
+      {/* Iconic Crown - High placement */}
+      <g transform="translate(250, 80) scale(0.7)">
+        <path d="M0 50 L 10 0 L 40 40 L 70 0 L 100 40 L 130 0 L 140 50 Z" stroke="black" strokeWidth="4" fill="none" strokeLinecap="round" />
+        <path d="M0 60 L 140 60" stroke="black" strokeWidth="4" strokeLinecap="round" />
+      </g>
+      
+      {/* Mask 2 - Slimmer, lower */}
+      <g transform="translate(260, 400) rotate(10) scale(0.9)">
+        <path d="M0 0 C 0 0, 80 0, 80 0 L 100 200 C 100 200, 40 250, 40 250 C 40 250, -20 200, -20 200 Z" stroke="black" strokeWidth="4" fill="none" />
+        <rect x="25" y="40" width="10" height="2" stroke="black" strokeWidth="5" fill="none" />
+        <rect x="65" y="40" width="10" height="2" stroke="black" strokeWidth="5" fill="none" />
+        <path d="M30 180 L 70 180" stroke="black" strokeWidth="4" />
+      </g>
+
+      {/* Skull / Skull Mask - Bottom right */}
+      <g transform="translate(50, 750) rotate(15) scale(0.8)">
+        <path d="M20 20 C 20 -30, 120 -30, 120 20 L 120 100 Q 120 120, 100 120 L 40 120 Q 20 120, 20 100 Z" stroke="black" strokeWidth="5" fill="none" />
+        <circle cx="50" cy="50" r="15" stroke="black" strokeWidth="3" fill="none" />
+        <circle cx="90" cy="50" r="15" stroke="black" strokeWidth="3" fill="none" />
+        <path d="M50 100 L 90 100 M 50 110 L 90 110 M 70 90 L 70 115" stroke="black" strokeWidth="2" />
+      </g>
+
+      {/* Abstract Marks */}
+      <path d="M300 1000 L 350 1050 M 350 1000 L 300 1050" stroke="black" strokeWidth="3" />
+      <path d="M50 400 L 90 400 M 50 410 L 90 410" stroke="black" strokeWidth="2" />
+      
+      <text x="280" y="1150" className="font-art text-6xl" transform="rotate(-90, 280, 1150)" style={{ opacity: 0.8 }}>LEGEND</text>
+      <text x="20" y="50" className="font-art text-4xl" style={{ opacity: 0.6 }}>SAMO©</text>
+      <text x="320" y="600" className="font-art text-2xl" transform="rotate(45, 320, 600)" style={{ opacity: 0.5 }}>HISTORY</text>
+    </svg>
+  </div>
+);
 
 // --- Components ---
 
@@ -229,8 +279,9 @@ export default function App() {
       "min-h-screen max-w-md mx-auto relative flex flex-col transition-colors duration-500",
       settings.theme === 'dark' ? 'dark bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'
     )}>
+      <ArtisticBackground />
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto pb-32 pt-8 px-6">
+      <main className="flex-1 overflow-y-auto pb-32 pt-8 px-6 relative z-10">
         <AnimatePresence mode="wait">
           {tab === 'dashboard' && (
             <Dashboard 
@@ -281,7 +332,7 @@ export default function App() {
       </main>
 
       {/* Floating Bottom Nav */}
-      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-[360px] glass rounded-[40px] px-8 py-4 shadow-xl z-40 flex items-center justify-between">
+      <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-[360px] glass rounded-[40px] px-8 py-4 shadow-xl z-50 flex items-center justify-between">
         <IconButton 
           icon={LayoutDashboard} 
           active={tab === 'dashboard'} 
@@ -348,7 +399,7 @@ function Dashboard({ transactions, categories, balance, income, expenses, curren
       <header className="flex justify-between items-center">
         <div>
           <p className="text-gray-400 text-sm font-medium tracking-wide">Welcome, {user?.displayName?.split(' ')[0] || 'User'}</p>
-          <h1 className="text-2xl font-display font-semibold">Your Finances</h1>
+          <h1 className="text-3xl font-art font-semibold tracking-tighter">Your Finances</h1>
         </div>
         <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-brand-primary/20">
           {user?.photoURL ? (
@@ -362,10 +413,10 @@ function Dashboard({ transactions, categories, balance, income, expenses, curren
       </header>
 
       {/* Balance Card */}
-      <GlassCard className="bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden relative">
+    <GlassCard className="bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden relative border-none">
         <div className="relative z-10">
-          <p className="text-gray-400 text-sm font-medium uppercase tracking-widest mb-1">Total Balance</p>
-          <h2 className="text-4xl font-display font-bold mb-8">
+          <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Total Balance</p>
+          <h2 className="text-5xl font-art font-bold mb-8 tracking-tighter">
             {currencySymbol}{balance.toLocaleString()}
           </h2>
           
@@ -617,15 +668,18 @@ function SettingsView({ settings, setSettings, onManageCategories, user }: any) 
                 </div>
                 <span className="font-medium">Currency</span>
               </div>
-              <select 
-                value={settings.currency}
-                onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
-                className="bg-gray-50 px-3 py-1 rounded-lg text-sm border-none focus:ring-0 dark:bg-gray-800"
-              >
-                {CURRENCIES.map(c => (
-                  <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select 
+                  value={settings.currency}
+                  onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
+                  className="appearance-none bg-gray-100/50 dark:bg-gray-800/50 pl-4 pr-10 py-2 rounded-2xl text-sm font-semibold border-none focus:ring-2 focus:ring-brand-primary/30 transition-all cursor-pointer outline-none"
+                >
+                  {CURRENCIES.map(c => (
+                    <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+              </div>
             </div>
 
             <div className="flex items-center justify-between">
@@ -969,9 +1023,9 @@ function Login() {
         </div>
         
         <div>
-          <h1 className="text-4xl font-display font-bold mb-2">Aura Expense</h1>
-          <p className="text-gray-500 font-medium tracking-tight px-4">
-            Master your money with minimalism and peace of mind.
+          <h1 className="text-5xl font-art font-bold mb-2 tracking-tighter">Aura Expense</h1>
+          <p className="text-gray-500 font-medium tracking-tight px-4 leading-relaxed">
+            Master your money with minimalism and legendary peace of mind.
           </p>
         </div>
 

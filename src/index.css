@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@400;700;800&family=Sedgwick+Ave+Display&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Outfit", sans-serif;
+  --font-display: "Syne", sans-serif;
+  --font-artistic: "Sedgwick Ave Display", cursive;
   
   --color-brand-primary: #FFB7B2;
   --color-brand-secondary: #B2E2F2;
@@ -13,20 +14,28 @@
 
 @layer base {
   body {
-    @apply bg-[var(--color-surface-soft)] text-gray-900 font-sans;
+    @apply bg-[var(--color-surface-soft)] text-gray-900 font-sans overflow-x-hidden;
+  }
+
+  h1, h2, h3 {
+    @apply font-display;
   }
 }
 
+.font-art {
+  font-family: var(--font-artistic);
+}
+
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .dark .glass {
-  background: rgba(17, 24, 39, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 10, 15, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -38,12 +47,30 @@
 }
 
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
 }
 
 .animate-float {
-  animation: float 3s ease-in-out infinite;
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Basquiat-esque Background Textures */
+.art-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1; /* Place above the background color of the parent */
+  opacity: 0.15;
+  overflow: hidden;
+}
+
+.dark .art-bg {
+  opacity: 0.25;
+  filter: invert(1) brightness(1.5) contrast(150%);
 }
 
